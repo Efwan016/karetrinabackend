@@ -12,7 +12,7 @@ class CateringSubscription extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'booking_trx_id'
+        'booking_trx_id',
         'name',
         'photo',
         'delivery_time',
@@ -34,7 +34,7 @@ class CateringSubscription extends Model
 
     protected $casts = [
         'started_at' => 'date',
-        'ended_at' => 'date'
+        'ended_at' => 'date',
     ];
 
     public static function generateUniqueTrxId()
@@ -49,11 +49,11 @@ class CateringSubscription extends Model
 
     public function cateringPackage(): BelongsTo
     {
-        return $this->belongsTo(cateringPackage::class, 'catering_package_id');
+        return $this->belongsTo(CateringPackage::class, 'catering_package_id');
     }
 
     public function cateringTier(): BelongsTo
     {
-        return $this->belongsTo(cateringTier::class, 'catering_tier_id');
+        return $this->belongsTo(CateringTier::class, 'catering_tier_id');
     }
 }
