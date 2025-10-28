@@ -20,6 +20,6 @@ class CateringTestimonial extends Model
 
     public function cateringPackage(): BelongsTo
     {
-        return $this->belongsTo(cateringPackage::class);
+        return $this->belongsTo(CateringPackage::class);
     }
 }

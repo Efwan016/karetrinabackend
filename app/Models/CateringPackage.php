@@ -32,7 +32,7 @@ class CateringPackage extends Model
 
     public function category(): BelongsTo
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsTo(Category::class, 'category_id');
     }
 
     public function city(): BelongsTo
@@ -47,7 +47,7 @@ class CateringPackage extends Model
 
     public function photos(): HasMany
     {
-        return $this->belongsTo(CateringPhoto::class);
+        return $this->hasMany(CateringPhoto::class);
     }
 
     public function testimonials(): HasMany

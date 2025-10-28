@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Filament\Resources\CateringTesttimonialResource\Pages;
+namespace App\Filament\Resources\CateringTestimonialResource\Pages;
 
-use App\Filament\Resources\CateringTesttimonialResource;
+use App\Filament\Resources\CateringTestimonialResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 
-class EditCateringTesttimonial extends EditRecord
+class EditCateringTestimonial extends EditRecord
 {
-    protected static string $resource = CateringTesttimonialResource::class;
+    protected static string $resource = CateringTestimonialResource::class;
 
     protected function getHeaderActions(): array
     {

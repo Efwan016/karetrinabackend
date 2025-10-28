@@ -2,11 +2,9 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\KitchenResource\Pages;
-use App\Filament\Resources\KitchenResource\RelationManagers;
-use App\Models\Kitchen;
+use App\Filament\Resources\CateringTestimonialResource\Pages;
+use App\Models\CateringTestimonial;
 use Filament\Forms;
-use Filament\Forms\Components\Tabs\Tab;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -14,35 +12,38 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class KitchenResource extends Resource
+class CateringTestimonialResource extends Resource
 {
-    protected static ?string $model = Kitchen::class;
-
+    protected static ?string $model = CateringTestimonial::class;
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-
-    protected static ?string $navigationGroup = 'Food';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')
-                    ->label('Kitchen Name')
+                    ->label('Testimonial Name')
                     ->required()
                     ->maxLength(255)
-                    ->reactive(),
-
-                Forms\Components\TextInput::make('year')
-                    ->label('Establishment Year')
-                    ->required()
-                    ->maxLength(4)
                     ->reactive(),
 
                 Forms\Components\FileUpload::make('photo')
                     ->image()
                     ->required()
                     ->disk('public')
-                    ->directory('kitchens'),
+                    ->directory('catering_testimonials'),
+
+                Forms\Components\Select::make('catering_package_id')
+                    ->relationship('cateringPackage', 'name')
+                    ->label('Catering Package')
+                    ->preload()
+                    ->searchable()
+                    ->required(),
+
+                Forms\Components\Textarea::make('message')
+                    ->label('Testimonial Message')
+                    ->required()
+                    ->maxLength(1000),
             ]);
     }
 
@@ -50,41 +51,40 @@ class KitchenResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\ImageColumn::make('photo'),
+                Tables\Columns\ImageColumn::make('cateringPackage.thumbnail'),
+                Tables\Columns\ImageColumn::make('photo')
+                    ->circular(),
 
                 Tables\Columns\TextColumn::make('name')
-                ->searchable(),
-                Tables\Columns\TextColumn::make('year')
-                ->searchable(),
+                    ->searchable()
+                    ->sortable(),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(),
-                    Tables\Actions\RestoreBulkAction::make(),
-                ]),
+                Tables\Actions\DeleteBulkAction::make(),
+                Tables\Actions\ForceDeleteBulkAction::make(),
+                Tables\Actions\RestoreBulkAction::make(),
             ]);
     }
 
     public static function getRelations(): array
     {
         return [
-            //
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListKitchens::route('/'),
-            'create' => Pages\CreateKitchen::route('/create'),
-            'edit' => Pages\EditKitchen::route('/{record}/edit'),
+            'index' => Pages\ListCateringTestimonials::route('/'),
+            'create' => Pages\CreateCateringTestimonial::route('/create'),
+            'edit' => Pages\EditCateringTestimonial::route('/{record}/edit'),
         ];
     }
 
