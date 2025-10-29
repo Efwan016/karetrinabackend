@@ -16,7 +16,6 @@ class CateringPhotoResource extends Resource
 {
     protected static ?string $model = CateringPhoto::class;
     protected static ?string $navigationIcon = 'heroicon-o-photo';
-    protected static ?string $navigationGroup = 'Catering Management';
     protected static ?string $navigationLabel = 'Catering Photos';
 
     public static function form(Form $form): Form

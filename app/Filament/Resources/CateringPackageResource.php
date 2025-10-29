@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\CateringPackageResource\Pages;
+use App\Filament\Resources\CateringPackageResource\RelationManagers\BonusesRelationManager;
 use App\Models\CateringPackage;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -135,7 +136,7 @@ class CateringPackageResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            BonusesRelationManager::class,
         ];
     }
 
