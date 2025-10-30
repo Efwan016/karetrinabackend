@@ -5,10 +5,16 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\CateringSubscriptionResource\Pages;
 use App\Filament\Resources\CateringSubscriptionResource\RelationManagers;
 use App\Models\CateringSubscription;
+use App\Models\CateringTier;
 use Filament\Forms;
+use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Tabs\Tab;
+use Filament\Forms\Components\ToggleButtons;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -23,7 +29,199 @@ class CateringSubscriptionResource extends Resource
     {
         return $form
             ->schema([
-                //
+                Forms\Components\Wizard::make([
+
+                    Forms\Components\Wizard\Step::make('Product and Price')
+                    ->icon('heroicon-m-shopping-bag')
+                    ->completedIcon('heroicon-m-hand-thumb-up')
+                    ->description('Which catering you choose')
+                    ->schema([
+                       
+                        Grid::make(2)
+                        ->schema([
+                            Forms\Components\Select::make('catering_package_id')
+                            ->relationship('cateringPackage', 'name')
+                            ->required()
+                            ->searchable()
+                            ->preload()
+                            ->live()
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                $set('catering_tier_id', null);
+                                $set('price', null);
+                                $set('total_amount', null);
+                                $set('total_tax_amount', null);
+                                $set('quantity', null);
+                                $set('duration', null);
+                                $set('ended_at', null);
+
+                            }),
+                                
+
+                            Forms\Components\Select::make('catering_tier_id')
+                            ->label('Catering Tier')
+                            ->options(function (callable $get) {
+                                $cateringPackageId = $get('catering_package_id');
+                                if (!$cateringPackageId) {
+                                    return CateringTier::where('catering_package_id', $cateringPackageId)
+                                        ->pluck('name', 'id');
+                                }
+                                return [];
+                            })
+                            ->required()
+                            ->searchable()
+                            ->live()
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                $cateringTier = CateringTier::find($state);
+                                $price = $cateringTier ? $cateringTier->price : 0;
+
+                                $quantity = $cateringTier ? $cateringTier->quantity : 0;
+                                $duration = $cateringTier ? $cateringTier->duration : 0;
+
+                                $set('price', $price);
+                                $set('quantity', $quantity);
+                                $set('duration', $duration);
+
+                                $tax = 0.11;
+                                $totalTaxAmount = $price * $tax;
+                                $totalAmount = $price + $totalTaxAmount;
+
+                                $set('total_amount', number_format($totalAmount, 0, ',', '.'));
+                                $set('total_tax_amount', number_format($totalTaxAmount, 0, ',', '.'));
+                            }),
+
+                            Forms\Components\TextInput::make('price')
+                            ->required()
+                            ->readOnly()
+                            ->prefix('IDR')
+                            ->numeric(),
+
+                            Forms\Components\TextInput::make('total_amount')
+                            ->required()
+                            ->readOnly()
+                            ->prefix('IDR')
+                            ->numeric(),
+
+                            Forms\Components\TextInput::make('total_tax_amount')
+                            ->required()
+                            ->readOnly()
+                            ->prefix('IDR')
+                            ->numeric()
+                            ->helperText('11% tax included'),
+
+                            Forms\Components\TextInput::make('quantity')
+                            ->required()
+                            ->readOnly()
+                            ->prefix('People')
+                            ->numeric(),
+
+                            Forms\Components\TextInput::make('duration')
+                            ->required()
+                            ->readOnly()
+                            ->prefix('Days')
+                            ->numeric(),
+
+                            Forms\Components\DatePicker::make('started_at')
+                            ->required()
+                            ->reactive()
+                            ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                $duration = $get('duration') ?? 0;
+                                if ($duration && $state) {
+                                    $endedAt = \Carbon\Carbon::parse($state)->addDays($duration);
+                                    $set('ended_at', $endedAt);
+                                } else {
+                                    $set('ended_at', null);
+                                }
+                            }),
+
+                            Forms\Components\DatePicker::make('ended_at')
+                            ->required(),
+                        ]),
+                    ]),
+
+                    Forms\Components\Wizard\Step::make('Customer Information')
+                    ->icon('heroicon-m-user-circle')
+                    ->completedIcon('heroicon-m-hand-thumb-up')
+                    ->description('For our marketing')
+                    ->schema([
+                       Grid::make(2)
+                       ->schema([
+                             Forms\Components\TextInput::make('name')
+                            ->required()
+                            ->maxLength(255),
+
+                        Forms\Components\TextInput::make('phone')
+                            ->required()
+                            ->numeric()
+                            ->maxLength(20),
+
+                        Forms\Components\TextInput::make('email')
+                            ->required()
+                            ->email()
+                            ->maxLength(255),
+                          ]),
+                    ]),
+
+                    Forms\Components\Wizard\Step::make('Delivery Information')
+                    ->icon('heroicon-m-truck')
+                    ->completedIcon('heroicon-m-hand-thumb-up')
+                    ->description('Where to deliver the catering')
+                    ->schema([
+                       Grid::make(2)
+                       ->schema([
+                            Forms\Components\TextInput::make('city')
+                            ->required()
+                            ->maxLength(500),
+
+                            Forms\Components\TextInput::make('post_code')
+                            ->required()
+                            ->maxLength(255),
+
+                            Forms\Components\TextInput::make('delivery_time')
+                            ->required()
+                            ->maxLength(20),
+
+                            Forms\Components\TextInput::make('address')
+                            ->required()
+                            ->maxLength(255),
+
+                            Forms\Components\TextInput::make('notes')
+                            ->required()
+                            ->maxLength(255),
+                       ]),
+                    ]),
+
+                    Forms\Components\Wizard\Step::make('Payment Information')
+                    ->icon('heroicon-m-credit-card')
+                    ->completedIcon('heroicon-m-hand-thumb-up')
+                    ->description('Payment method')
+                    ->schema([
+                          Grid::make(3)
+                            ->schema([
+                                Forms\Components\TextInput::make('booking_trx_id')
+                                ->maxLength(255)
+                                ->required(),
+
+                                ToggleButtons::make('is_paid')
+                                ->label('Payment?')
+                                ->boolean()
+                                ->grouped()
+                                ->icons([
+                                    true => 'heroicon-o-pencil',
+                                    false => 'heroicon-o-clock',
+                                ])
+                                ->required(),
+    
+                                Forms\Components\FileUpload::make('proof')
+                                ->image()
+                                ->maxSize(2048)
+                                ->required(),
+                            ]),
+                    ]),
+                ])
+
+                ->columnSpan('full')
+                ->columns(1)
+                ->skippable()
             ]);
     }
 
@@ -31,13 +229,30 @@ class CateringSubscriptionResource extends Resource
     {
         return $table
             ->columns([
-                //
+                Tables\Columns\ImageColumn::make('cateringPackage.thumbnail')
+                    ->label('Thumbnail'),
+                Tables\Columns\TextColumn::make('cateringPackage.name')
+                    ->label('Catering Package'),
+                Tables\Columns\TextColumn::make('booking_trx_id')
+                    ->label('Booking Trx ID'),
+                Tables\Columns\IconColumn::make('is_paid')
+                    ->label('Verified')
+                    ->trueColor('success')
+                    ->falseColor('danger')
+                    ->trueIcon('heroicon-o-check-circle')
+                    ->falseIcon('heroicon-o-x-circle')
+                    ->boolean(),
             ])
             ->filters([
+                SelectFilter::make('catering_package_id')
+                    ->relationship('cateringPackage', 'name')
+                    ->label('Catering Package'),
+
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\ViewAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

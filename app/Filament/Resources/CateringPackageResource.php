@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\CateringPackageResource\Pages;
 use App\Filament\Resources\CateringPackageResource\RelationManagers\BonusesRelationManager;
+use App\Filament\Resources\CateringPackageResource\RelationManagers\TiersRelationManager;
 use App\Models\CateringPackage;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -137,6 +138,7 @@ class CateringPackageResource extends Resource
     {
         return [
             BonusesRelationManager::class,
+            TiersRelationManager::class,
         ];
     }
 
