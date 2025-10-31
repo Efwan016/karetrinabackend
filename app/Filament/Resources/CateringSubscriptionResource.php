@@ -12,6 +12,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Tabs\Tab;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Filters\SelectFilter;
@@ -24,6 +25,13 @@ class CateringSubscriptionResource extends Resource
     protected static ?string $model = CateringSubscription::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    protected static ?string $navigationGroup = 'Customers';
+
+    public static function getNavigationBadge(): ?string
+    {
+        return (string) CateringSubscription::where('is_paid', false)->count();
+    }
 
     public static function form(Form $form): Form
     {
@@ -61,7 +69,7 @@ class CateringSubscriptionResource extends Resource
                             ->label('Catering Tier')
                             ->options(function (callable $get) {
                                 $cateringPackageId = $get('catering_package_id');
-                                if (!$cateringPackageId) {
+                                if ($cateringPackageId) {
                                     return CateringTier::where('catering_package_id', $cateringPackageId)
                                         ->pluck('name', 'id');
                                 }
@@ -83,10 +91,10 @@ class CateringSubscriptionResource extends Resource
 
                                 $tax = 0.11;
                                 $totalTaxAmount = $price * $tax;
-                                $totalAmount = $price + $totalTaxAmount;
 
-                                $set('total_amount', number_format($totalAmount, 0, ',', '.'));
-                                $set('total_tax_amount', number_format($totalTaxAmount, 0, ',', '.'));
+                                $totalAmount = $price + $totalTaxAmount;
+                                $set('total_amount', number_format($totalAmount, 0, '', ''));
+                                $set('total_tax_amount', number_format($totalTaxAmount, 0, '', ''));
                             }),
 
                             Forms\Components\TextInput::make('price')
@@ -253,7 +261,27 @@ class CateringSubscriptionResource extends Resource
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\ViewAction::make(),
+
+                Tables\Actions\Action::make('Approve Payment')
+                    ->label('Approve Payment')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->action(function (CateringSubscription $record) {
+                        $record->is_paid = true;
+                        $record->save();
+
+                        Notification::make()
+                        ->title('Payment Approved')
+                        ->success()
+                        ->send()
+                        ->body('The payment has been approved successfully.');
+                    })
+
+                    ->visible(fn (CateringSubscription $record): bool => !$record->is_paid)
+                    ->color('success')
+                    ->requiresConfirmation(),
             ])
+
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
