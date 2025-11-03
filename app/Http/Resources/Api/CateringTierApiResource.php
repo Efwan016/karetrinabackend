@@ -11,7 +11,7 @@ class CateringTierApiResource extends JsonResource
     /**
      * Transform the resource into an array.
      *
-     * @return array<string, mixed>
+     * @return array<string,
      */
     public function toArray(Request $request): array
     {
