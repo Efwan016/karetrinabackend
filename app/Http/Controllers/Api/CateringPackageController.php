@@ -11,13 +11,13 @@ class CateringPackageController extends Controller
 {
     public function index()
     {
-        $cateringPackages = CateringPackage::with(['city', 'category', 'tiers', 'tier.benefits'])->get();
+        $cateringPackages = CateringPackage::with(['city', 'category', 'tiers', 'tiers.benefits'])->get();
         return CateringPackageApiResource::collection($cateringPackages);
     }
 
     public function show(CateringPackage $cateringPackage)
     {
-        $cateringPackage->load(['city','photo', 'bonuses',  'category', 'kitchen', 'testimonials', 'tiers', 'tier.benefits']);
+        $cateringPackage->load(['city', 'bonuses',  'category', 'kitchen', 'testimonials', 'tiers', 'tiers.benefits']);
 
         $cateringPackage->kitchen->loadCount('cateringPackages');
 

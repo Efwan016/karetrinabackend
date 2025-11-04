@@ -19,6 +19,6 @@ class Kitchen extends Model
 
     public function cateringPackages(): HasMany
     {
-        return $this->hasMany(cateringPackages::class);
+        return $this->hasMany(CateringPackage::class);
     }
 }

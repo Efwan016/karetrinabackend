@@ -48,6 +48,6 @@ class CategoryController extends Controller
            ->with(['city', 'kitchen', 'category', 'tiers'])
            ->get();
 
-        return CateringPackage::collection($cateringPackages);
+        return CateringPackageApiResource::collection($cateringPackages);
     }
 }

@@ -40,7 +40,7 @@ class CateringSubscription extends Model
         'ended_at' => 'date',
     ];
 
-    public static function generateUniqueTrxId()
+    public static function generateBookingTrxId()
     {
         $prefix = 'FLOWADZ';
         do {

@@ -40,12 +40,11 @@ class CateringSubscriptionController extends Controller
         $price = $cateringTier->price;
         $tax = 0.11;
         $totalTax = $price * $tax;
-        $totalPrice = $price * $totalTax;
         $grandTotal = $price + $totalTax;
 
         $validatedData['price'] = $price;
-        $validatedData['total_tax_amount'] = $totalTax;
-        $validatedData['total_amount'] = $grandTotal;
+        $validatedData['total_tax_amount'] = round($totalTax, 2);
+        $validatedData['total_amount'] = round($grandTotal, 2);
 
         $validatedData['quantity'] = $cateringTier->quantity;
         $validatedData['duration'] = $cateringTier->duration;
@@ -72,7 +71,7 @@ class CateringSubscriptionController extends Controller
 
         $booking = CateringSubscription::where('phone', $request->phone)
             ->where('booking_trx_id', $request->booking_trx_id)
-            ->with(['cateringPackage','cateringPackage.kitchen', 'cateringTier'])
+            ->with(['cateringPackage','cateringPackage.kitchen', 'cateringPackage.category', 'cateringPackage.city', 'cateringTier'])
             ->first();
 
         if (!$booking) {
@@ -80,4 +79,5 @@ class CateringSubscriptionController extends Controller
         }
         return new CateringSubscriptionApiResource($booking);
     }
+
 }
